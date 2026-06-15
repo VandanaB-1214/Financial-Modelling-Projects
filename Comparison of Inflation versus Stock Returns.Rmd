@@ -1,0 +1,91 @@
+---
+title: "lab session 6"
+author: "Vandana Brahmasa"
+date: "2025-04-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Investment and Inflation
+In the 70’s, did investment in stocks beat the inflation in the United States?
+This is an open-ended research question. Please use what you have learned in this class to provide the
+analysis.
+
+```{r}
+library(quantmod)
+library(xts)
+```
+```{r}
+#get data- S&P500 for investment and seasonal adjusted CPI for inflation
+sp500 <- getSymbols("^GSPC", from = "1970-01-01", to = "1980-12-31", auto.assign = FALSE)
+getSymbols("CPIAUCSL", src = "FRED")
+```
+```{r}
+#Convert S&P to monthly format and use the closing prices for analysis
+sp500_monthly <- to.monthly(sp500, indexAt = "lastof", OHLC = FALSE)
+sp500_close <- Cl(sp500_monthly)
+```
+
+
+```{r}
+#subset both data to the 70s
+cpi_70s <- CPIAUCSL["1970/1979"]
+sp500_70s <- sp500_close["1970/1979"]
+head(cpi_70s)
+head(sp500_70s)
+```
+```{r}
+#normalize both data to start at 100 for easy comparison:
+cpi_norm <- xts(coredata(cpi_70s) / as.numeric(first(cpi_70s)) * 100, order.by = index(cpi_70s))
+sp500_norm <- xts(coredata(sp500_70s) / as.numeric(first(sp500_70s)) * 100, order.by = index(sp500_70s))
+#explore structure of both datasets
+head(cpi_norm)
+tail(cpi_norm)
+head(sp500_norm)
+tail(sp500_norm)
+#align cpi dates to match s&p date format to yyyy-mm-dd
+index(cpi_norm) <- as.Date(as.yearmon(index(cpi_norm)), frac = 1)
+
+```
+```{r}
+#merge the matching dates
+combined <- merge(cpi_norm, sp500_norm, join = "inner")
+colnames(combined) <- c("Inflation", "S&P500")
+str(combined)
+
+```
+```{r}
+plot(combined,
+     main = "S&P 500 vs Inflation (1970s)",
+     col = c("red", "blue"),
+     ylab = "Indexed (Base = 100)")
+legend("topleft",
+       legend = c("Inflation", "S&P 500"),
+       col = c("red", "blue"),
+       lty = 1, lwd = 2)
+```
+
+As we can see, the red line indicating inflation is higher than the blue line indicating stock marker investments. This suggests that investments were unsuccessful in beating the inflation in the 70s.

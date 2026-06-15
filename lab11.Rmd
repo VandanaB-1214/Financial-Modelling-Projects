@@ -1,0 +1,100 @@
+---
+title: "Lab11"
+author: "Vandana Brahmasa"
+date: "2025-04-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+ Part I
+ In Part I, we will study return predictability using monthly returns.
+ a. We will again use the stock market data set used in Robert Shiller’s book, Irrational Exuberance. Repeat
+ the steps in the previous lab “Expected Return” to import the data:
+ First, copy, paste, and run the following code chunk to define the load_data function:
+```{r}
+library(quantmod)
+load_data <- function(data_file){
+ load(url(paste0(r'{https://web.ics.purdue.edu/~zeng135/}', data_file, '.rdata')),
+ envir = .GlobalEnv)}
+load_data("Shiller")
+head(Shiller)
+```
+  Then calculate the returns on the S&P composite index.
+```{r}
+r <- (Shiller$Price + Shiller$Dividend/12)/ lag(Shiller$Price) - 1
+head(r)
+```
+   b. Recall that the acf function can be used to calculate and plot the autocorrelations of a time series. Use acf to study the autocorrelation structure of the returns. What is your observation?
+```{r}
+sp_returns <- na.omit(r)
+acf(sp_returns, main="Autocorrelations of S&P returns")
+```
+ c. Compute the autocorrelation of the returns for lag of 1 month.
+```{r}
+acf(sp_returns, lag.max= 1, plot= FALSE)
+```
+  d. Regress current month’s return on the previous month’s return. Do you see evidence of return predictability?
+ Why?
+```{r}
+current <- r[-1] #current returns first value removed
+ 
+previous <- r[-length(r)] #previous month's returns (lagged)
+ 
+model <- lm (current ~ previous)
+summary(model)
+```
+  In Part II, we will study return predictability using annual returns.
+ a. Robert Shiller provides annual series of the data set at:
+ http://www.econ.yale.edu/~shiller/data/chapt26.xlsx
+ Download the Excel file and and take a look at its contents.
+ b. I have downloaded the annual data and converted to a data frame, and saved it as an R data file online.
+ Call the load_data function (the same function used in Part I) to load the annual data:
+```{r}
+load_data("Shiller_annual")
+```
+ c. Check the head of the data frame data. The meaning of each column can be found in the corresponding
+ Excel file. For example, the p column is the S&P Composite Stock Price Index, and the div column contains
+ dividends accruing to the index for the whole year.
+```{r}
+load_data <- function(data_file){
+ load(url(paste0(r'{https://web.ics.purdue.edu/~zeng135/}', data_file, '.rdata')),
+ envir = .GlobalEnv)}
+load_data("Shiller_annual")
+head(Shiller_data_annual)
+```
+  d. In order to manipulate the time series data, convert the data frame into an xts object, using the date
+ column for the time stamp. Name the xts object data_xts. Plot the price
+```{r}
+library(xts)
+###convert shiller data to Date format:
+Shiller_data_annual$date <- as.Date(paste0(Shiller_data_annual$date, "-01-01"))
+###cxts object
+data_xts <- xts(Shiller_data_annual[, -1], order.by = Shiller_data_annual$date)
+# Step 4: Plot the S&P Composite Price Index (column 'p')
+plot(data_xts$p, main = "S&P Composite Index Price (Annual)", 
+     ylab = "Price", xlab = "Year", col = "blue")
+```
+ 

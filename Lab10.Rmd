@@ -1,0 +1,113 @@
+---
+title: "Lab10"
+author: "Vandana Brahmasa"
+date: "2025-04-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+###Load data function
+load_data <- function(data_file){
+load(url(paste0(r'{https://web.ics.purdue.edu/~zeng135/}', data_file, '.rdata')),
+envir = .GlobalEnv)}
+load_data("Shiller")
+str(Shiller)
+head(Shiller)
+```
+```{r}
+###Plot the price column
+plot(Shiller[,1])
+```
+c.  Calculate the monthly returns on the index. Note that Price is ex-dividend, so you would need to add
+the dividends back in calculating the returns. Also Dividend is annualized, so you would need to divide it by
+12 to get the monthly dividend. Plot the returns. What is your observation?
+```{r}
+monthly_dividend <- Shiller$Dividend/12
+lagged_prices <- lag(Shiller$Price, k=1)
+monthly_returns <- (Shiller$Price + monthly_dividend) / lagged_prices
+plot(monthly_returns,
+     main= "monthly returns",
+     ylab= "Return",
+     xlab= "Year",
+     type= 'l',
+     col= "blue")
+```
+High volatility during the Great Depression, negative peaks observed in 2008 and 2020 around financial crashes
+
+d. Estimate the expected return by calculating the average return.
+
+```{r}
+expected_monthly_return <- mean(monthly_returns, na.rm=TRUE)
+expected_monthly_return
+```
+e. Calculate the standard error of the expected return estimate. This is just the standard deviation divided
+by the square root of the sample size.
+```{r}
+standard_deviation <- sd(monthly_returns, na.rm = TRUE)
+n <- length(monthly_returns)
+standard_error <- standard_deviation/sqrt(n)
+standard_error
+```
+f. Calculate the 95% confidence interval of the expected return estimate. What do you think of the accuracy
+of this estimate?
+```{r}
+###Confidence Interval at 95%= average returns+/- z score* Standard error
+z_score <- 1.96 ###Corresponding to 95%
+lower_limit <- expected_monthly_return- z_score *standard_error
+upper_limit <-  expected_monthly_return+ z_score* standard_error
+CI <- c("Lower 95%"= lower_limit, "Upper 95%"= upper_limit)
+CI
+```
+g. Repeat steps d, e, and f, using the sub-sample after World War II. What are the trade-offs between using
+a more recent sub-sample versus using the whole sample
+```{r}
+###Filter post WW2 sample:
+Shiller_postWWII <- Shiller["1946/"]
+Shiller_postWWII_monthly_dividend <- Shiller_postWWII$Dividend/12
+monthly_returns_postWWII <- (Shiller_postWWII$Price+ Shiller_postWWII_monthly_dividend/ lag(Shiller_postWWII$Price))
+monthly_returns_postWWII
+```
+```{r}
+###expected return
+expected_return_postWWII <- mean(monthly_returns_postWWII, na.rm= TRUE)
+expected_return_postWWII
+```
+```{r}
+###Standard Error
+se_postWWII <- sd(monthly_returns_postWWII, na.rm = TRUE)/ sqrt(length(monthly_returns_postWWII))
+se_postWWII
+```
+```{r}
+###CI
+z_score <- 1.96 ###Corresponding to 95%
+lower_limit <- expected_return_postWWII- z_score *se_postWWII
+upper_limit <-  expected_return_postWWII+ z_score* se_postWWII
+
+CI <- c("Lower 95%"= lower_limit, "Upper 95%"= upper_limit)
+CI
+```
+

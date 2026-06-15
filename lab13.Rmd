@@ -1,0 +1,135 @@
+---
+title: "Lab13"
+author: "Vandana Brahmasa"
+date: "2025-05-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+a. Coin toss
+```{r}
+sample(c(-10,10), size=10, prob=c(0.5, 0.5), replace= TRUE)
+```
+b.  Now you can play the coin toss game against the house. If it comes up head, you earn $9, 800. Otherwise
+you owe the house $10, 000. The %2 difference in payoff is called the house edge. Assume the coin is fair –
+the chance of head or tail is 50/50. If you play the coin toss once, what is the casino’s expected profit? What is the probability that the casino makes money? You don’t need simulation to answer this question.
+```{r}
+#payoff to casino: -9800 for H and 10000 for T
+casino_h <- -9800
+casino_t <- 10000
+exp_casino_payoff <- (0.5* casino_h) + (0.5* casino_t)
+exp_casino_payoff
+```
+c. Now let’s change the stake of the coin tossing game. If it comes up head, you earn $98. Otherwise you
+owe the house $100. The house edge is still 2%. If you play the coin toss 100 times (so that the total stake is
+comparable to part b), what is the casino’s expected profit? What is the probability that the casino makes
+money? Use simulation to answer this question.
+```{r}
+#simulate 100 coin toss games
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of games
+n_games <- 100
+
+# Simulate the outcomes: 1 = Head, 0 = Tail
+tosses <- sample(c(0, 1), size = n_games, prob = c(0.5, 0.5), replace = TRUE)
+
+# Calculate casino profit per toss:
+# Head (1): casino loses $98 → -98
+# Tail (0): casino gains $100 → +100
+casino_profits <- ifelse(tosses == 1, -98, 100)
+
+# Total profit over 100 games
+total_profit <- sum(casino_profits)
+print(paste("Total profit for the casino:", total_profit))
+
+#simulate this experiment over 10000 iterations
+# Run simulation over 10,000 repetitions
+set.seed(123)
+n_simulations <- 10000
+profits <- numeric(n_simulations)
+
+for (i in 1:n_simulations) {
+  tosses <- sample(c(0, 1), size = 100, prob = c(0.5, 0.5), replace = TRUE)
+  profit <- sum(ifelse(tosses == 1, -98, 100))
+  profits[i] <- profit
+}
+
+# Expected profit (average)
+mean_profit <- mean(profits)
+print(paste("Expected profit for the casino over 100 games:", round(mean_profit, 2)))
+
+# Probability casino makes money
+prob_profitable <- mean(profits > 0)
+print(paste("Probability that the casino makes money:", round(prob_profitable, 3)))
+
+```
+d. Let’s lower the stake of the coin tossing game even futher. If it comes up head, you earn $0.98. Otherwise
+you owe the house $1. The house edge is still 2%. If you play the coin toss 10,000 times, what is the casino’s
+expected profit? What is the probability that the casino makes money? Use simulation to answer this
+question.
+
+```{r}
+# simulation over 10000 games
+# Set seed for reproducibility
+set.seed(123)
+
+# Number of games
+n_games <- 10000
+
+# Simulate coin tosses: 1 = head, 0 = tail
+tosses <- sample(c(0, 1), size = n_games, prob = c(0.5, 0.5), replace = TRUE)
+
+# Compute casino profits: head = -0.98, tail = +1
+profits <- ifelse(tosses == 1, -0.98, 1)
+
+# Total profit
+total_profit <- sum(profits)
+print(paste("Total casino profit from 10,000 games:", round(total_profit, 2)))
+
+# simulate 10000 game over 10000 iterations
+# Run 10,000 simulations of 10,000 coin tosses each
+set.seed(123)
+n_simulations <- 10000
+profits_total <- numeric(n_simulations)
+
+for (i in 1:n_simulations) {
+  tosses <- sample(c(0, 1), size = 10000, prob = c(0.5, 0.5), replace = TRUE)
+  profits <- ifelse(tosses == 1, -0.98, 1)
+  profits_total[i] <- sum(profits)
+}
+
+# Expected profit
+mean_profit <- mean(profits_total)
+print(paste("Expected profit:", round(mean_profit, 2)))
+
+# Probability that the casino makes money
+prob_profit <- mean(profits_total > 0)
+print(paste("Probability casino makes money:", round(prob_profit, 3)))
+
+```
+
+
